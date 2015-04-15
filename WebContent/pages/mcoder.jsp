@@ -38,14 +38,143 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+	<script src="http://code.jquery.com/jquery-1.7.0.min.js"></script>
+	<script src="json2.js"></script>
+	
+	<script type="text/javascript">
+		jQuery.support.cors = true; //크로스 도메인 허용		
+		var ServletIp = 'localhost'; // Server IP address
+		var ServletPort = '8080'; // Server Port Number
+		
+		// 시작함수-------------------------------------------------------------------------------------
+		window.onload = function(){				
+			$('#OutputKey').val('test-transcoded-1');
+			$('#PresetId').val('webm');
+		}
+		
+		// POST방식으로 서블릿에 JSON 데이터 전송------------------------------------------------------- 
+  		function requestPost(responseForm, requestBody, requestUrl){  		 
+ 			var requestBody = JSON.stringify(requestBody, null, 4); // object to json			
+			
+   			$.ajax({  				
+  				url : encodeURI("http://localhost:8080/motie/motieApi?url=" + requestUrl),
+  				contentType : "application/json; charset=utf-8",
+  				data : requestBody,
+  				type : 'POST',
+  				success : function(data) {
+  					responseForm.val(data);
+  				},
+  				error : function(data, status, er) {
+  					alert("status : " + status + "\n error msg :" + er);
+  				}
+  			}); 
+		};
+		
+		function requestGet(responseForm, requestUrl) {
+			$.ajax({
+				url : encodeURI("http://localhost:8080/motie/motieApi"),
+				type : 'GET',
+				data : 'url=' + requestUrl,
+				success : function(data) {
+					/*data.replaceAll("\r\n", "<br>");
+					data.replaceAll("\u0020", "&nbsp"); */
+					//alert(data);
+					//responseForm.val(data);
+				},
+				error : function(data, status, er) {
+					alert("status : " + status + "\n error msg :" + er);
+				}
+			});
+		};
+	 
+		 
+		// Init함수
+		$(document).ready(function(){
+			
+			$('#CreateJboBtn').click(function() {
+				
+ 				// 사용자가 입력한 값을 JSON 형식에 대입
+		 		$(createJobJsonData).each(function(index, item){		 			
+					with(item){					
+						Input.Url = './test.mp4';
+						OutputUrlPrefix = './media';					
+					 
+						$(Outputs).each(function(index2, item2){						
+							with(item2){
+															
+								if (Key == 'test-transcoded-1'){							
+									Key = $('#OutputKey').val();
+									PresetId = $('#PresetId').val();									
+								}
+								else{
+									//Key = $('#OutputKey').val();
+									//PresetId = $('#PresetId').val();	
+								}
+							}						
+						});					
+					}				   			
+				});  
+				
+				var requestBody = createJobJsonData;		
+				var requestUrl = 'http://61.109.146.42:8081/v1/jobs';				
+				requestPost($("#JobCreateResult"), requestBody, requestUrl);		 
+			});		
+
+			// 임시 테스트.
+			$('#JobListBtn').click(function(){			
+				
+				// 다운로드 상태표기스레드 함수
+				var percentage2 = document.querySelector('#percentage');  					
+				var downloadState = setInterval(function(){  
+					
+					percentage2.innerHTML += '*';
+					
+					// 처리상태 얻기
+/* 					var requestUrl = "http://61.109.146.42:8081/v1/jobs?status=Progressing&page=TestMessage";
+					requestGet(null, requestUrl);					
+					}, 1000); 
+ */			});
+				
+		});	 
+		
+			
+	</script>
+	
+	<script type="text/javascript">
+	
+	/* jobCreate json data */
+	var createJobJsonData = 
+		{
+			Input: {					
+	        	Url : './test.mp4'
+	        },
+	        OutputUrlPrefix : './media',	        	
+			Outputs : [{
+					Key : 'test-transcoded-1',
+					ThumbnailPattern : '{key}_{resolution}_{count}',
+					PresetId : 'webm',			
+					Captions : {
+						CaptionSources : [{
+								Url : './test.smi'
+							}]		
+					}
+				}, {
+					Key : 'test-transcoded-2',
+					ThumbnailPattern : '{key}_{resolution}_{count}',
+					PresetId : 'm4a'
+				} 
+			]
+	    };
+	
+	</script>
+
 </head>
 
 <body>
 
     <div id="wrapper">
 
-
-<%@include file="navigation.html" %>
+		<%@include file="navigation.html" %>
         
         <div id="page-wrapper">
             <div class="row">
@@ -133,6 +262,20 @@
                                     <div class="col-lg-12">
                                         <span class="pull-left"><label>Processing : </label> 100%</span>
                                     </div>
+                                    <div>
+                                    	<h1 id="percentage"/>
+                                    </div>
+<!-- 그래프표기는 나중에                <div>
+	                                    <p>
+	                                        <strong>Task 1</strong>
+	                                        <span class="pull-right text-muted">40% Complete</span>
+	                                    </p>
+	                                    <div class="progress progress-striped active">
+	                                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
+	                                            <span class="sr-only">40% Complete (success)</span>
+                                        	</div>
+                                    	</div>
+                                	</div> -->                                  
                                 </div>
                             </div>
                         </div>
@@ -153,10 +296,11 @@
                         <div class="panel-body">
                             <div class="row">
                                 <div class="col-lg-6">
+                                    <!-- <form role="form" action="fileFormOk.jsp" method="post" enctype="multipart/form-data" > -->
                                     <form role="form">
                                         <div class="form-group">
                                             <label>Text Input</label>
-                                            <input type="file">
+                                            <input type="file" name="file">
                                         </div>
                                         <div class="form-group">
                                             <label>Caption file</label>
@@ -164,14 +308,14 @@
                                         </div>
                                         <div class="form-group">
                                             <label>Output Key</label>
-                                            <input class="form-control">
+                                            <input class="form-control" id="OutputKey">
                                         </div>
                                         <div class="form-group">
                                             <label>Preset ID</label>
-                                            <input class="form-control">
+                                            <input class="form-control" id="PresetId">
                                         </div>
-                                        <button type="submit" class="btn btn-default">Submit Button</button>
-                                        <button type="reset" class="btn btn-default">Reset Button</button>
+                                        <button id="CreateJboBtn" type="submit" class="btn btn-default">Submit Button</button>
+                                        <button id="JobListBtn" type="reset" class="btn btn-default">Reset Button</button>
                                     </form>
                                 </div>
                             </div>
