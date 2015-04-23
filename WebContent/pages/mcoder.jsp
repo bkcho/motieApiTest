@@ -39,22 +39,35 @@
     <![endif]-->
 
 	<script src="http://code.jquery.com/jquery-1.7.0.min.js"></script>
-	<script src="json2.js"></script>
-	
+ 	<script src="json2.js"></script>
+ 	
 	<script type="text/javascript">
 		jQuery.support.cors = true; //크로스 도메인 허용		
-		var ServletIp = 'localhost'; // Server IP address
-		var ServletPort = '8080'; // Server Port Number
-		
+		//var ServletIp = 'localhost'; // Server IP address
+		var ServletPort = '8082'; // My ebserver port
+		var repeat;
+	 		
 		// 시작함수-------------------------------------------------------------------------------------
 		window.onload = function(){				
 			$('#OutputKey').val('test-transcoded-1');
-			$('#PresetId').val('webm');
-		}
+			$('#PresetId').val('webm');			
+			$('#progressbar1').width('0%');
+		};
+		
+		// Init함수
+		$(document).ready(function(){
+			
+			// 1. Job Create.
+			$('#CreateJobBtn').click(function(){
+				var requestUrl = 'http://localhost:' + ServletPort + '/v1/jobs';
+				var requestBody = JSON.stringify(createJobJsonData, null, 4); // object to json 	
+				requestPost(requestBody, requestUrl); 		 	
+			});	
+
+		});	 	
 		
 		// POST방식으로 서블릿에 JSON 데이터 전송------------------------------------------------------- 
-  		function requestPost(responseForm, requestBody, requestUrl){  		 
- 			var requestBody = JSON.stringify(requestBody, null, 4); // object to json			
+  		function requestPost(requestBody, requestUrl){		
 			
    			$.ajax({  				
   				url : encodeURI("http://localhost:8080/motie/motieApi?url=" + requestUrl),
@@ -62,82 +75,60 @@
   				data : requestBody,
   				type : 'POST',
   				success : function(data) {
-  					responseForm.val(data);
+  					jobCreateProcess(data); 					 
   				},
   				error : function(data, status, er) {
   					alert("status : " + status + "\n error msg :" + er);
   				}
   			}); 
-		};
+		}; 
 		
 		function requestGet(responseForm, requestUrl) {
+	 
 			$.ajax({
 				url : encodeURI("http://localhost:8080/motie/motieApi"),
 				type : 'GET',
 				data : 'url=' + requestUrl,
 				success : function(data) {
-					/*data.replaceAll("\r\n", "<br>");
-					data.replaceAll("\u0020", "&nbsp"); */
-					//alert(data);
-					//responseForm.val(data);
+					jobListProcess(data);
 				},
 				error : function(data, status, er) {
 					alert("status : " + status + "\n error msg :" + er);
 				}
 			});
 		};
-	 
-		 
-		// Init함수
-		$(document).ready(function(){
-			
-			$('#CreateJboBtn').click(function() {
-				
- 				// 사용자가 입력한 값을 JSON 형식에 대입
-		 		$(createJobJsonData).each(function(index, item){		 			
-					with(item){					
-						Input.Url = './test.mp4';
-						OutputUrlPrefix = './media';					
-					 
-						$(Outputs).each(function(index2, item2){						
-							with(item2){
-															
-								if (Key == 'test-transcoded-1'){							
-									Key = $('#OutputKey').val();
-									PresetId = $('#PresetId').val();									
-								}
-								else{
-									//Key = $('#OutputKey').val();
-									//PresetId = $('#PresetId').val();	
-								}
-							}						
-						});					
-					}				   			
-				});  
-				
-				var requestBody = createJobJsonData;		
-				var requestUrl = 'http://61.109.146.42:8081/v1/jobs';				
-				requestPost($("#JobCreateResult"), requestBody, requestUrl);		 
-			});		
-
-			// 임시 테스트.
-			$('#JobListBtn').click(function(){			
-				
-				// 다운로드 상태표기스레드 함수
-				var percentage2 = document.querySelector('#percentage');  					
-				var downloadState = setInterval(function(){  
-					
-					percentage2.innerHTML += '*';
-					
-					// 처리상태 얻기
-/* 					var requestUrl = "http://61.109.146.42:8081/v1/jobs?status=Progressing&page=TestMessage";
-					requestGet(null, requestUrl);					
-					}, 1000); 
- */			});
-				
-		});	 
 		
+		function jobCreateProcess(str){			
+			$('#jobCreateState').text("1");
+									
+			var list= $.parseJSON(str);
+			repeat = setInterval(function(){				
+				// 2. Job List
+ 				var requestUrl = "http://localhost:" + ServletPort + "/v1/jobs/" + list.Job.Id;
+				requestGet($('#ProcessingState'), requestUrl);				
+ 								
+			}, 1000);								
+		};
+		
+		function jobListProcess(str){
+			$('#jobCreateState').text("0");
+		 		
+			var list = $.parseJSON(str);			
+			var status = list.Job.Outputs[0].Status;
 			
+			if (status != "Complete"){
+				$('#ProcessingState').text(status);
+				$('#progressbar1').css('width',status + '%');
+			}
+			else {
+				$('#ProcessingState').text("100");
+				$('#Completed').text("1");
+				$('#progressbar1').css('width','100%');
+				clearInterval(repeat);
+			}  
+		}; 
+		// ----------------------------------------------------------------------------------------
+						
 	</script>
 	
 	<script type="text/javascript">
@@ -166,6 +157,8 @@
 			]
 	    };
 	
+	var jobCreateJsonString = "{'Input':{'Url':'./test.mp4'},'OutputUrlPrefix':'./media','Outputs':[{'Key':'test-transcoded-1','ThumbnailPattern':'{key}_{resolution}_{count}','PresetId':'webm','Captions':{'CaptionSources':[{'Url':'./test.smi'}]}},{'Key':'test-transcoded-2','ThumbnailPattern':'{key}_{resolution}_{count}','PresetId':'m4a'}]}";
+	requestBody = jobCreateJsonString.replace(/'/gi, "\"");
 	</script>
 
 </head>
@@ -193,7 +186,7 @@
                                     <div>Submitted</div>
                                 </div>
                                 <div class="col-xs-9 text-right">
-                                    <div class="huge">26</div>
+                                    <div class="huge" id="jobCreateState">0</div>
                                 </div>
                             </div>
                         </div>
@@ -207,7 +200,7 @@
                                     <div>Processing</div>
                                 </div>
                                 <div class="col-xs-9 text-right">
-                                    <div class="huge">124</div>
+                                    <div class="huge" id="ProcessingState">0</div>
                                 </div>
                             </div>
                         </div>
@@ -221,7 +214,7 @@
                                     <div>Completed</div>
                                 </div>
                                 <div class="col-xs-9 text-right">
-                                    <div class="huge">12</div>
+                                    <div class="huge" id="Completed">0</div>
                                 </div>
                             </div>
                         </div>
@@ -235,7 +228,7 @@
                                     <div>Failed</div>
                                 </div>
                                 <div class="col-xs-9 text-right">
-                                    <div class="huge">13</div>
+                                    <div class="huge" id="Failed">0</div>
                                 </div>
                             </div>
                         </div>
@@ -262,20 +255,23 @@
                                     <div class="col-lg-12">
                                         <span class="pull-left"><label>Processing : </label> 100%</span>
                                     </div>
+                                    
+                                    <!-- 프로그레스바 -->
                                     <div>
                                     	<h1 id="percentage"/>
                                     </div>
-<!-- 그래프표기는 나중에                <div>
+						            <div>
 	                                    <p>
 	                                        <strong>Task 1</strong>
-	                                        <span class="pull-right text-muted">40% Complete</span>
+	                                        <span class="pull-right text-muted" id="complete">40% Complete</span>
 	                                    </p>
 	                                    <div class="progress progress-striped active">
-	                                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
+	                                        <div id="progressbar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:5%">
 	                                            <span class="sr-only">40% Complete (success)</span>
                                         	</div>
                                     	</div>
-                                	</div> -->                                  
+                                	</div> 
+                                	<!-- 프로그레스바 -->
                                 </div>
                             </div>
                         </div>
@@ -314,7 +310,8 @@
                                             <label>Preset ID</label>
                                             <input class="form-control" id="PresetId">
                                         </div>
-                                        <button id="CreateJboBtn" type="submit" class="btn btn-default">Submit Button</button>
+                                        <button type="button" id="CreateJobBtn" class="btn btn-default">Job Create.</button>
+                                        <button type="submit" class="btn btn-default">Submit Button</button>
                                         <button id="JobListBtn" type="reset" class="btn btn-default">Reset Button</button>
                                     </form>
                                 </div>
@@ -349,7 +346,7 @@
 
     <!-- Custom Theme JavaScript -->
     <script src="../dist/js/sb-admin-2.js"></script>
-
+	
 </body>
 
 </html>

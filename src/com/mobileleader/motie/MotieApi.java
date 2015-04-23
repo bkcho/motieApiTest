@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Map;
 import java.util.Scanner;
 
 import javax.servlet.RequestDispatcher;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.Request;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -30,35 +32,33 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
  
 @WebServlet("/motieApi")
 public class MotieApi extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
- 
+      
     public MotieApi() {
         super();       
     }
  
     @SuppressWarnings("deprecation")
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    	
 		@SuppressWarnings("resource")
 		HttpClient httpclient = new DefaultHttpClient();
+		
 		String responseBody = "";
-
 		String url = request.getParameter("url");
-
 		HttpGet get = new HttpGet(url);
+		
 		try {
 			HttpResponse execute = httpclient.execute(get);
 			InputStream content = execute.getEntity().getContent();
 			
-			BufferedReader buffer = new BufferedReader(
-					new InputStreamReader(content));
+			BufferedReader buffer = new BufferedReader( new InputStreamReader(content));
 			
 			String sTmp = "";
 			while ((sTmp = buffer.readLine()) != null) {
@@ -66,13 +66,17 @@ public class MotieApi extends HttpServlet {
 			}
 
 		} catch (Exception e) {
-				e.printStackTrace();
+			e.printStackTrace();
 		}
+		
+/*		responseBody = responseBody.replace("'", "\"");
+		responseBody = GetPercentage(responseBody);
+*/		
 		
 		PrintWriter out;
 		out = response.getWriter();
 		out.println(responseBody);
-
+		 
 		return;
 	}
  
@@ -104,6 +108,8 @@ public class MotieApi extends HttpServlet {
 	    PrintWriter out;
 	    out = response.getWriter();
 	    out.println(responseBody);
+	    
+	    request.setAttribute("id", "ppusari");
 
 	    return;	                    
 	}
@@ -134,5 +140,25 @@ public class MotieApi extends HttpServlet {
 
 		return;
 	//	super.doDelete(request, response);
-	} 
+	}
+ 	
+	public String GetPercentage(String str)
+	{
+		try {
+			JSONObject json = new JSONObject(str);
+ 
+			// 오브젝트 안에 오브젝트 뽑아오기
+			JSONObject objJob = json.getJSONObject("Jobs");
+				
+			// 오브젝트 안에서 배열 뽑아오기
+			JSONArray outputs = objJob.getJSONArray("Outputs");
+			JSONObject obj = outputs.getJSONObject(0);				
+			return obj.getString("Status");			
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		return null;	 
+	}
 }
