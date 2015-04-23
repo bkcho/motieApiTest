@@ -44,7 +44,7 @@
 	<script type="text/javascript">
 		jQuery.support.cors = true; //크로스 도메인 허용		
 		//var ServletIp = 'localhost'; // Server IP address
-		var ServletPort = '8082'; // My ebserver port
+		var ServletPort = '8082'; // My webserver port
 		var repeat;
 	 		
 		// 시작함수-------------------------------------------------------------------------------------
@@ -117,16 +117,17 @@
 		 		
 			var list = $.parseJSON(str);			
 			var status = list.Job.Outputs[0].Status;
-			
+						
 			if (status != "Complete"){
-				$('#ProcessingState').text("1");				
-				$('#completeVal').text(status + "% Complete");				
+				$('#ProcessingState').text("1");	
+				$('#progressbar1').css('width',status + '%');
+				$('#progressbar1').text(status + "% Complete");				
 			}
 			else {
 				$('#ProcessingState').text("0");
 				$('#Completed').text("1");
-				$('#completeVal').css('width','100%');
-				clearInterval(repeat);	 
+				$('#progressbar1').css('width','100%');
+				clearInterval(repeat);
 			}  
 		}; 
 		// ----------------------------------------------------------------------------------------
@@ -139,7 +140,7 @@
 	var createJobJsonData = 
 		{
 			Input: {					
-	        	Url : './test.mp4'
+	        	Url : './test3.mp4'
 	        },
 	        OutputUrlPrefix : './media',	        	
 			Outputs : [{
@@ -252,19 +253,19 @@
                                         <label class="" id="outputKey"></label>                                     
                                     </div>
                                     <div class="col-lg-12">
-                                        <span class="pull-left"><label>Start Time : </label></span> <!-- 2015-04-08 14:48:00 -->
+                                        <span class="pull-left"><label>Start Time : </label></span>
                                         <label id="startTime"></label>
                                     </div>
                                     <div class="col-lg-12">
                                         <span class="pull-left" id="ProcessingVal"></span> 
                                     </div>
-						            <div class="col-lg-12">	<!-- 프로그레스바 start -->	                                   
+						            <div class="col-lg-12">	                                   
 	                                    <!--  <strong>Processing</strong> -->
-	                                    <span class="pull-right text-muted" id="completeVal">0% Complete</span>	                                    
+	                                    <!-- <span class="pull-right text-muted" id="completeVal">0% Complete</span> -->	                                    
 	                                    <div class="progress progress-striped active">
-	                                        <div id="progressbar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%">
+	                                        <div id="progressbar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:100%">
                                     	</div>
-                                	</div> <!-- 프로그레스바 end -->
+                                	</div>
                                  
                             </div>
                         </div>
