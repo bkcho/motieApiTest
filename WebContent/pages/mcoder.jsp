@@ -98,16 +98,18 @@
 			});
 		};
 		
-		function jobCreateProcess(str){			
-			$('#jobCreateState').text("1");
-									
+		function jobCreateProcess(str){		
+										
 			var list= $.parseJSON(str);
-			repeat = setInterval(function(){				
-				// 2. Job List
+			$('#outputKey').text(" " + list.Job.Outputs[0].Key);
+			$('#jobCreateState').text("1");		
+			$('#startTime').text(new Date());
+			
+			// 3. Job Read
+			repeat = setInterval(function(){
  				var requestUrl = "http://localhost:" + ServletPort + "/v1/jobs/" + list.Job.Id;
-				requestGet($('#ProcessingState'), requestUrl);				
- 								
-			}, 1000);								
+				requestGet($('#ProcessingState'), requestUrl);
+			}, 500);								
 		};
 		
 		function jobListProcess(str){
@@ -117,14 +119,14 @@
 			var status = list.Job.Outputs[0].Status;
 			
 			if (status != "Complete"){
-				$('#ProcessingState').text(status);
-				$('#progressbar1').css('width',status + '%');
+				$('#ProcessingState').text("1");				
+				$('#completeVal').text(status + "% Complete");				
 			}
 			else {
-				$('#ProcessingState').text("100");
+				$('#ProcessingState').text("0");
 				$('#Completed').text("1");
-				$('#progressbar1').css('width','100%');
-				clearInterval(repeat);
+				$('#completeVal').css('width','100%');
+				clearInterval(repeat);	 
 			}  
 		}; 
 		// ----------------------------------------------------------------------------------------
@@ -157,8 +159,8 @@
 			]
 	    };
 	
-	var jobCreateJsonString = "{'Input':{'Url':'./test.mp4'},'OutputUrlPrefix':'./media','Outputs':[{'Key':'test-transcoded-1','ThumbnailPattern':'{key}_{resolution}_{count}','PresetId':'webm','Captions':{'CaptionSources':[{'Url':'./test.smi'}]}},{'Key':'test-transcoded-2','ThumbnailPattern':'{key}_{resolution}_{count}','PresetId':'m4a'}]}";
-	requestBody = jobCreateJsonString.replace(/'/gi, "\"");
+	//var jobCreateJsonString = "{'Input':{'Url':'./test.mp4'},'OutputUrlPrefix':'./media','Outputs':[{'Key':'test-transcoded-1','ThumbnailPattern':'{key}_{resolution}_{count}','PresetId':'webm','Captions':{'CaptionSources':[{'Url':'./test.smi'}]}},{'Key':'test-transcoded-2','ThumbnailPattern':'{key}_{resolution}_{count}','PresetId':'m4a'}]}";
+	//requestBody = jobCreateJsonString.replace(/'/gi, "\"");
 	</script>
 
 </head>
@@ -245,34 +247,25 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
                             <div class="row">
-                                <div class="col-lg-12">
-                                    <div class="col-lg-12">
-                                        <span class="pull-left"><label>Output Key : </label> output.mp4</span>
+                                 	<div class="col-lg-12">
+                                        <span class="pull-left"><label>Output Key : </label></span>
+                                        <label class="" id="outputKey"></label>                                     
                                     </div>
                                     <div class="col-lg-12">
-                                        <span class="pull-left"><label>Start Time : </label> 2015-04-08 14:48:00</span>
+                                        <span class="pull-left"><label>Start Time : </label></span> <!-- 2015-04-08 14:48:00 -->
+                                        <label id="startTime"></label>
                                     </div>
                                     <div class="col-lg-12">
-                                        <span class="pull-left"><label>Processing : </label> 100%</span>
+                                        <span class="pull-left" id="ProcessingVal"></span> 
                                     </div>
-                                    
-                                    <!-- 프로그레스바 -->
-                                    <div>
-                                    	<h1 id="percentage"/>
-                                    </div>
-						            <div>
-	                                    <p>
-	                                        <strong>Task 1</strong>
-	                                        <span class="pull-right text-muted" id="complete">40% Complete</span>
-	                                    </p>
+						            <div class="col-lg-12">	<!-- 프로그레스바 start -->	                                   
+	                                    <!--  <strong>Processing</strong> -->
+	                                    <span class="pull-right text-muted" id="completeVal">0% Complete</span>	                                    
 	                                    <div class="progress progress-striped active">
-	                                        <div id="progressbar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:5%">
-	                                            <span class="sr-only">40% Complete (success)</span>
-                                        	</div>
+	                                        <div id="progressbar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%">
                                     	</div>
-                                	</div> 
-                                	<!-- 프로그레스바 -->
-                                </div>
+                                	</div> <!-- 프로그레스바 end -->
+                                 
                             </div>
                         </div>
                         <!-- .panel-body -->
@@ -326,7 +319,7 @@
             <!-- /.row -->
         </div>
         <!-- /#page-wrapper -->
-
+</div>
     </div>
     <!-- /#wrapper -->
 
