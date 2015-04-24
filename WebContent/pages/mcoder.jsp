@@ -11,7 +11,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Bootstrap Admin Theme</title>
+    <title>Transcoding & Streaming</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -175,7 +175,7 @@
         <div id="page-wrapper">
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Mcoder </h1>
+                    <h1 class="page-header">Mobileleader Transcoder </h1>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
@@ -286,8 +286,8 @@
                         <div class="panel-body">
                             <div class="row">
                                 <div class="col-lg-6">
-                                    <!-- <form role="form" action="fileFormOk.jsp" method="post" enctype="multipart/form-data" > -->
-                                    <form role="form">
+                                    <form role="form" action="fileFormOk.jsp" method="post" enctype="multipart/form-data">
+                                    <!-- <form role="form"> -->
                                         <div class="form-group">
                                             <label>Text Input</label>
                                             <input type="file" name="file">
