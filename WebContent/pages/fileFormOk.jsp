@@ -1,3 +1,4 @@
+<%@page import="java.io.Console"%>
 <%@page import="java.util.Enumeration"%>
 <%@page import="com.oreilly.servlet.multipart.DefaultFileRenamePolicy"%>
 <%@page import="com.oreilly.servlet.MultipartRequest"%>
@@ -5,6 +6,7 @@
 <%	
 	String path = request.getRealPath("fileFolder");
 	out.println("파일이 저장되는곳: " + path + "<p>");
+	System.out.println("파일이 저장되는곳: " + path );
 	
 	int size = 1024 * 1024 * 10; // 10Mb
 	String file = "";
